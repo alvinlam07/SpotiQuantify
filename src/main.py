@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from textwrap import dedent
 
 import spotipy.exceptions
 from spotipy import Spotify
@@ -20,23 +21,39 @@ artistScope = 'user-top-read'
 #         self.artists = artistArr
 #         self.songs = songArr
 
-def printPrompt():
-    print(f"""
+def printChoicePrompt():
+    print(dedent(f"""
     ******************************
     SpotiQuantify
     ******************************
     What would you like to do?
     1. Display Top 50 Artists
     2. Display Top 50 Tracks
-    2. Exit
-    """)
+    3. Exit
+    """))
 
-print("Starting Authorization Process...")
+def getTimeRange():
+    while True:
+        print(dedent(f"""
+        Which time range would you like to see?
+        1. 12 months
+        2. 6 months
+        3. 4 weeks
+        """))
+        user_input = input('Choice: ')
+        match user_input:
+            case '1':
+                return 'long_term'
+            case '2':
+                return 'medium_term'
+            case '3':
+                return 'short_term'
+            case _:
+                print('Please enter a valid choice...')
+
+print('Starting Authorization Process...')
 try:
-    sp = Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
-                                           client_secret=client_secret,
-                                           redirect_uri=redirect_uri,
-                                           scope=artistScope))
+    sp = Spotify(auth_manager=SpotifyOAuth(client_id=client_id,client_secret=client_secret,redirect_uri=redirect_uri,scope=artistScope))
 except spotipy.exceptions.SpotifyBaseException as e:
     print(f'Spotify API error: {e}')
 except Exception as e:
@@ -49,18 +66,20 @@ finally:
     print(f'URI: {user["uri"]}')
 
 while True:
-    printPrompt()
+    printChoicePrompt()
     user_input = input('Choice: ')
     match user_input:
         case '1': # Display Top 50 Artists
-            top_artists = sp.current_user_top_artists(limit=50)
-            print("----- Top 50 Artists ----")
-            for i, artist in enumerate(top_artists["items"],1):
-                print(f"{i}: {artist["name"]}")
+            time_range = getTimeRange()
+            top_artists = sp.current_user_top_artists(limit=50, time_range=time_range)
+            print('----- Top 50 Artists ----')
+            for i, artist in enumerate(top_artists['items'], 1):
+                print(f'{i}: {artist['name']}')
         case '2': # Display Top 50 Tracks
-            top_tracks = sp.current_user_top_tracks(limit=50)
+            time_range = getTimeRange()
+            top_tracks = sp.current_user_top_tracks(limit=50, time_range=time_range)
             print('----- Top 50 Tracks ----')
-            for i, track in enumerate(top_tracks['items'],1):
+            for i, track in enumerate(top_tracks['items'], 1):
                 print(f'{i}: {track['name']}')
         case '3': # Exit program
             break
