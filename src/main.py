@@ -11,8 +11,8 @@ client_id = os.getenv('CLIENT_ID')
 client_secret = os.getenv('CLIENT_SECRET')
 redirect_uri = os.getenv('REDIRECT_URI')
 
-scope = 'user-library-read'
-artistScope = 'user-top-read'
+# scope = 'user-library-read'
+scope = ['user-top-read', 'user-follow-read']
 
 ## Sample Class ##
 # class User:
@@ -53,7 +53,7 @@ def getTimeRange():
 
 print('Starting Authorization Process...')
 try:
-    sp = Spotify(auth_manager=SpotifyOAuth(client_id=client_id,client_secret=client_secret,redirect_uri=redirect_uri,scope=artistScope))
+    sp = Spotify(auth_manager=SpotifyOAuth(client_id=client_id,client_secret=client_secret,redirect_uri=redirect_uri,scope=scope))
 except spotipy.exceptions.SpotifyBaseException as e:
     print(f'Spotify API error: {e}')
 except Exception as e:
@@ -64,6 +64,11 @@ finally:
     print(f'User: {user["display_name"]}')
     print(f'ID: {user["id"]}')
     print(f'URI: {user["uri"]}')
+    print(f'Followers: {user["followers"]}')
+    user_following = sp.current_user_followed_artists(limit=50)
+    for artist in user_following['artists']['items']:
+        if artist['type'] == 'user':
+            print(artist['name'])
 
 while True:
     printChoicePrompt()
